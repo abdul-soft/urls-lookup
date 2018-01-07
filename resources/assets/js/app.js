@@ -29,15 +29,15 @@ const app = new Vue({
     created() {
 
         Echo.private('url-lookup')
-            .listen('UrlLookupEvent', (e) => {
-                console.log(e);
-                this.titles.push(e.title);
+            .listen('UrlLookup', (e) => {
+                if(e.title != ''){
+                    this.titles.push(e.title);
+                }
         });
     },
 
     methods: {
         checkUrls(urls) {
-            console.log(urls);
             axios.post('/home', urls).then(response => {});
         }
     }

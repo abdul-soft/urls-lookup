@@ -1110,16 +1110,16 @@ var app = new Vue({
     created: function created() {
         var _this = this;
 
-        Echo.private('url-lookup').listen('UrlLookupEvent', function (e) {
-            console.log(e);
-            _this.titles.push(e.title);
+        Echo.private('url-lookup').listen('UrlLookup', function (e) {
+            if (e.title != '') {
+                _this.titles.push(e.title);
+            }
         });
     },
 
 
     methods: {
         checkUrls: function checkUrls(urls) {
-            console.log(urls);
             axios.post('/home', urls).then(function (response) {});
         }
     }

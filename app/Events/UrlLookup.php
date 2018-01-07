@@ -39,4 +39,9 @@ class UrlLookup implements ShouldBroadcast
     {
         return new PrivateChannel('url-lookup');
     }
+
+    public function broadcastWith()
+    {
+        return ['title' =>  $this->title];
+    }
 }

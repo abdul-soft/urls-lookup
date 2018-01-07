@@ -15,8 +15,30 @@ window.Vue = require('vue');
  * or customize the JavaScript scaffolding to fit your unique needs.
  */
 
-Vue.component('example-component', require('./components/ExampleComponent.vue'));
+// Vue.component('example-component', require('./components/ExampleComponent.vue'));
+Vue.component('url-lookup-form', require('./components/UrlLookupForm.vue'));
+Vue.component('url-titles', require('./components/UrlTitles.vue'));
 
 const app = new Vue({
-    el: '#app'
+    el: '#app',
+
+    data: {
+        titles: []
+    },
+
+    created() {
+
+        Echo.private('url-lookup')
+            .listen('UrlLookupEvent', (e) => {
+                console.log(e);
+                this.titles.push(e.title);
+        });
+    },
+
+    methods: {
+        checkUrls(urls) {
+            console.log(urls);
+            axios.post('/home', urls).then(response => {});
+        }
+    }
 });

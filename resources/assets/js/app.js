@@ -31,7 +31,7 @@ const app = new Vue({
         Echo.private('url-lookup')
             .listen('UrlLookup', (e) => {
                 if(e.title != ''){
-                    this.titles.push(e.title);
+                    this.titles.splice(e.order, 0, e.title);
                 }
         });
     },

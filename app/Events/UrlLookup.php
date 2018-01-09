@@ -17,17 +17,21 @@ class UrlLookup implements ShouldBroadcast
 
     protected $user;
     protected $title;
+    protected $order;
 
     /**
      * Create a new event instance.
      *
      * @param User $user
+     * @param string $title
+     * @param integer $order
      * @return void
      */
-    public function __construct(User $user, $title)
+    public function __construct(User $user, $title, $order)
     {
         $this->user = $user;
         $this->title = $title;
+        $this->order = $order;
     }
 
     /**
@@ -42,6 +46,7 @@ class UrlLookup implements ShouldBroadcast
 
     public function broadcastWith()
     {
-        return ['title' =>  $this->title];
+        \Log::info($this->title);
+        return ['title' =>  $this->title, 'order'   =>  $this->order];
     }
 }

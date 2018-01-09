@@ -9,33 +9,64 @@
 namespace App\Services;
 
 
+use App\Events\UrlLookup;
+use App\User;
+use Carbon\Carbon;
 use GuzzleHttp\Client;
+use GuzzleHttp\Pool;
+use GuzzleHttp\Psr7\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UrlLookupService
 {
 
     protected $client;
+    protected $user;
 
     public function __construct(Client $client)
     {
         $this->client = $client;
     }
 
-    public function lookup($url)
+
+    public function lookup($urls, User $user)
     {
-        $data = $this->client->request('GET', trim($url));
+        $this->user = $user;
+        $urls = explode(',', $urls);
 
-        $str = $data->getBody()->getContents();
+        $requests = function($urls) {
 
-        if(strlen($str)>0){
+            foreach ($urls as $url) {
+                yield new Request('GET', trim($url));
+            }
+        };
 
-            $str = trim(preg_replace('/\s+/', ' ', $str)); // supports line breaks inside <title>
+        $pool = new Pool($this->client, $requests($urls), [
+            'concurrency' => 5,
+            'fulfilled' => function ($response, $index) {
 
-            preg_match("/\<title\>(.*)\<\/title\>/i",$str,$title); // ignore case
+                $str = $response->getBody()->getContents();
 
-            return $title[1];
-        }
-        return 'No Title Found';
+                if(strlen($str)>0){
+
+                    $str = trim(preg_replace('/\s+/', ' ', $str)); // supports line breaks inside <title>
+
+                    preg_match("/\<title\>(.*)\<\/title\>/i",$str,$title); // ignore case
+
+                    broadcast(new UrlLookup($this->user, $title[1], $index));
+                }
+                // this is delivered each successful response
+            },
+            'rejected' => function ($reason, $index) {
+                // this is delivered each failed request
+                \Log::info($reason);
+
+            },
+        ]);
+
+
+        $promise = $pool->promise();
+        $promise->wait();
     }
 
 }

@@ -2,25 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\FetchUrlTitlesEvent;
 use App\Events\UrlLookup;
+use App\Jobs\UrlLookupJob;
 use App\Services\UrlLookupService;
+use Carbon\Carbon;
+use GuzzleHttp\Client;
+use GuzzleHttp\Pool;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
+
+use Psr\Http\Message\ResponseInterface;
+use GuzzleHttp\Exception\RequestException;
 
 class HomeController extends Controller
 {
 
-    protected $lookupService;
     /**
      * Create a new controller instance.
      *
-     * @param UrlLookupService $lookupService
      * @return void
      */
-    public function __construct(UrlLookupService $lookupService)
+    public function __construct()
     {
         $this->middleware('auth');
-        $this->lookupService = $lookupService;
     }
 
     /**
@@ -35,15 +41,7 @@ class HomeController extends Controller
 
     public function urlLookup(Request $request)
     {
-        $urls = $request->get('urls');
-
-        foreach(explode(',', $urls) as $url){
-
-            $title = $this->lookupService->lookup($url);
-
-            broadcast(new UrlLookup(Auth::user(), $title));
-        }
-
-
+        UrlLookupJob::dispatch($request->get('urls'), Auth::user());
     }
+
 }

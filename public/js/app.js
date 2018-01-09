@@ -1112,7 +1112,7 @@ var app = new Vue({
 
         Echo.private('url-lookup').listen('UrlLookup', function (e) {
             if (e.title != '') {
-                _this.titles.push(e.title);
+                _this.titles.splice(e.order, 0, e.title);
             }
         });
     },
